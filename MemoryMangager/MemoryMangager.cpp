@@ -17,5 +17,6 @@ int main()
     {
 		std::cout << "Leaked " << post - pre << " bytes\n";
     }
+	Accountant::get().outputMemoryChunksUsedReport(std::cout);
     std::cout << "Hello World!\n";
 }

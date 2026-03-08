@@ -3,6 +3,6 @@
     <Platform Name="x64" />
     <Platform Name="x86" />
   </Configurations>
-  <Project Path="MemoryCore/MemoryCore.vcxitems" />
-  <Project Path="MemoryMangager/MemoryMangager.vcxproj" />
+  <Project Path="MemoryCore/MemoryCore.vcxitems" Id="5fdae6bf-545c-4bbd-9788-c9af2aabd22b" />
+  <Project Path="MemoryMangager/MemoryMangager.vcxproj" Id="2ed962c6-2ce3-4b29-95d6-a211d4628073" />
 </Solution>

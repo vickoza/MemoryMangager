@@ -1,12 +1,24 @@
 #pragma once
 #include <cstddef>
 #include <atomic>
-#include <new>
+#include <mutex>
+#include <ostream>
+
 class Accountant
 {
 	std::atomic<long long> cur;
-	Accountant() : cur(0) {}
+	std::size_t** memoryChunksUsed;
+	std::atomic<std::size_t> memoryChunksUsedSize;
+	std::atomic<std::size_t> memoryChunksUsedCapacity;
+	std::mutex mtx;
+	Accountant();
+	void take(std::size_t size, std::size_t* ptr);
+	void give_back(std::size_t* ptr);
 public:
+	friend void* operator new(std::size_t m) noexcept(false);
+	friend void* operator new[](std::size_t m) noexcept(false);
+	friend void operator delete(void* ptr) noexcept;
+	friend void operator delete[](void* ptr) noexcept;	
 	Accountant(Accountant const&) = delete;
 	Accountant& operator=(Accountant const&) = delete;
 	static auto& get() 
@@ -14,21 +26,10 @@ public:
 		static Accountant instance;
 		return instance;
 	}
-	void take(std::size_t size)
-	{
-		cur += size;
-	}
-	void give_back(std::size_t size)
-	{
-		cur -= size;
-	}
-	auto how_much() const
+	std::size_t how_much() const
 	{
 		return cur.load();
 	}
+	void outputMemoryChunksUsedReport(std::ostream& os) const;
 };
 
-void* operator new(std::size_t m);
-void* operator new[](std::size_t m);
-void operator delete(void* ptr) noexcept;
-void operator delete[](void* ptr) noexcept;
