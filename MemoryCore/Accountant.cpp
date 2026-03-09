@@ -7,18 +7,18 @@
 
 Accountant::Accountant() : cur(0), memoryChunksUsedSize(0)
 {
-	memoryChunksUsed = static_cast<std::size_t**>(std::malloc(sizeof(std::size_t*) * 16));
+	memoryChunksUsed = static_cast<std::max_align_t**>(std::malloc(sizeof(std::max_align_t*) * 16));
 	memoryChunksUsedCapacity = 16;
 }
 
-void Accountant::take(std::size_t size, std::size_t* ptr)
+void Accountant::take(std::size_t size, std::max_align_t* ptr)
 {
 	cur += size;
 	if (memoryChunksUsedSize == memoryChunksUsedCapacity)
 	{
 		std::lock_guard<std::mutex> lock(mtx);
-		std::size_t** newMemoryChunksUsed = static_cast<std::size_t**>(std::malloc(sizeof(std::size_t*) * memoryChunksUsedCapacity * 2));
-		std::memcpy(newMemoryChunksUsed, memoryChunksUsed, sizeof(std::size_t*) * memoryChunksUsedCapacity);
+		std::max_align_t** newMemoryChunksUsed = static_cast<std::max_align_t**>(std::malloc(sizeof(std::max_align_t*) * memoryChunksUsedCapacity * 2));
+		std::memcpy(newMemoryChunksUsed, memoryChunksUsed, sizeof(std::max_align_t*) * memoryChunksUsedCapacity);
 		std::free(memoryChunksUsed);
 		memoryChunksUsed = newMemoryChunksUsed;
 		memoryChunksUsedCapacity = 2 * memoryChunksUsedCapacity;
@@ -27,7 +27,7 @@ void Accountant::take(std::size_t size, std::size_t* ptr)
 	++memoryChunksUsedSize;
 
 }
-void Accountant::give_back(std::size_t* ptr)
+void Accountant::give_back(std::max_align_t* ptr)
 {
 	{
 		std::lock_guard<std::mutex> lock(mtx);
@@ -60,7 +60,7 @@ void* operator new(std::size_t n) noexcept(false)
     void* p = std::malloc(n + sizeof(std::max_align_t));
 	if (p == nullptr)
         throw std::bad_alloc{};
-	std::size_t* q = new (p) std::size_t(n);
+	std::max_align_t* q = new (p) std::max_align_t(n);
 	Accountant::get().take(n, q);
     return q + 1;
 }
@@ -70,7 +70,7 @@ void* operator new[](std::size_t n) noexcept(false)
 	void* p = std::malloc(n + sizeof(std::max_align_t));
 	if (p == nullptr)
 		throw std::bad_alloc{};
-	std::size_t* q = new (p) std::size_t(n);
+	std::max_align_t* q = new (p) std::max_align_t(n);
 	Accountant::get().take(n, q);
 	return q + 1;
 }
@@ -79,7 +79,7 @@ void operator delete(void* ptr) noexcept
 {
 	if (ptr == nullptr)
 		return;
-	auto q{ static_cast<std::size_t*>(ptr) - 1 };
+	auto q{ static_cast<std::max_align_t*>(ptr) - 1 };
 	Accountant::get().give_back(q);
 	std::free(q);
 }
@@ -88,7 +88,7 @@ void operator delete[](void* ptr) noexcept
 {
 	if (ptr == nullptr)
 		return;
-	auto q{ static_cast<std::size_t*>(ptr) - 1 };
+	auto q{ static_cast<std::max_align_t*>(ptr) - 1 };
 	Accountant::get().give_back(q);
 	std::free(q);
 }

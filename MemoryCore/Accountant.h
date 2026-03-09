@@ -7,13 +7,13 @@
 class Accountant
 {
 	std::atomic<long long> cur;
-	std::size_t** memoryChunksUsed;
+	std::max_align_t** memoryChunksUsed;
 	std::atomic<std::size_t> memoryChunksUsedSize;
 	std::atomic<std::size_t> memoryChunksUsedCapacity;
 	std::mutex mtx;
 	Accountant();
-	void take(std::size_t size, std::size_t* ptr);
-	void give_back(std::size_t* ptr);
+	void take(std::size_t size, std::max_align_t* ptr);
+	void give_back(std::max_align_t* ptr);
 public:
 	~Accountant();
 	friend void* operator new(std::size_t m) noexcept(false);
