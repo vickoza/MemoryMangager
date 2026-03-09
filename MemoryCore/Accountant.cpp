@@ -1,5 +1,6 @@
 #include "Accountant.h"
 #include <cstdlib>
+#include <cstddef>
 #include <cstring>
 #include <new>
 #include <algorithm>
@@ -28,9 +29,9 @@ void Accountant::take(std::size_t size, std::size_t* ptr)
 }
 void Accountant::give_back(std::size_t* ptr)
 {
-	auto it{ std::find(memoryChunksUsed, memoryChunksUsed + memoryChunksUsedSize, ptr) };
 	{
 		std::lock_guard<std::mutex> lock(mtx);
+		auto it{ std::find(memoryChunksUsed, memoryChunksUsed + memoryChunksUsedSize, ptr) };
 		if (it != memoryChunksUsed + memoryChunksUsedSize)
 		{
 			std::swap(*it, memoryChunksUsed[memoryChunksUsedSize - 1]);
@@ -38,6 +39,11 @@ void Accountant::give_back(std::size_t* ptr)
 		}
 	}
 	cur -= *ptr;
+}
+
+Accountant::~Accountant() //should be called at the end of the program, so no need to lock the mutex
+{
+	free(memoryChunksUsed);
 }
 
 void Accountant::outputMemoryChunksUsedReport(std::ostream& os) const
@@ -51,7 +57,7 @@ void Accountant::outputMemoryChunksUsedReport(std::ostream& os) const
 
 void* operator new(std::size_t n) noexcept(false)
 {
-    void* p = std::malloc(n + sizeof n);
+    void* p = std::malloc(n + sizeof(std::max_align_t));
 	if (p == nullptr)
         throw std::bad_alloc{};
 	std::size_t* q = new (p) std::size_t(n);
@@ -61,7 +67,7 @@ void* operator new(std::size_t n) noexcept(false)
 
 void* operator new[](std::size_t n) noexcept(false)
 {
-	void* p = std::malloc(n + sizeof n);
+	void* p = std::malloc(n + sizeof(std::max_align_t));
 	if (p == nullptr)
 		throw std::bad_alloc{};
 	std::size_t* q = new (p) std::size_t(n);

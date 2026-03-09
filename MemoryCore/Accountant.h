@@ -15,6 +15,7 @@ class Accountant
 	void take(std::size_t size, std::size_t* ptr);
 	void give_back(std::size_t* ptr);
 public:
+	~Accountant();
 	friend void* operator new(std::size_t m) noexcept(false);
 	friend void* operator new[](std::size_t m) noexcept(false);
 	friend void operator delete(void* ptr) noexcept;
