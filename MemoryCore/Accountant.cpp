@@ -27,7 +27,7 @@ void Accountant::take(std::size_t size, std::max_align_t* ptr)
 	++memoryChunksUsedSize;
 
 }
-void Accountant::give_back(std::max_align_t* ptr)
+void Accountant::give_back(std::size_t size, std::max_align_t* ptr)
 {
 	{
 		std::lock_guard<std::mutex> lock(mtx);
@@ -75,20 +75,20 @@ void* operator new[](std::size_t n) noexcept(false)
 	return q + 1;
 }
 
-void operator delete(void* ptr) noexcept
+void operator delete(void* ptr, std::size_t n) noexcept
 {
 	if (ptr == nullptr)
 		return;
 	auto q{ static_cast<std::max_align_t*>(ptr) - 1 };
-	Accountant::get().give_back(q);
+	Accountant::get().give_back(n,q);
 	std::free(q);
 }
 
-void operator delete[](void* ptr) noexcept
+void operator delete[](void* ptr, std::size_t n) noexcept
 {
 	if (ptr == nullptr)
 		return;
 	auto q{ static_cast<std::max_align_t*>(ptr) - 1 };
-	Accountant::get().give_back(q);
+	Accountant::get().give_back(n,q);
 	std::free(q);
 }

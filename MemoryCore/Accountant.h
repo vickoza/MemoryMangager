@@ -13,13 +13,13 @@ class Accountant
 	std::mutex mtx;
 	Accountant();
 	void take(std::size_t size, std::max_align_t* ptr);
-	void give_back(std::max_align_t* ptr);
+	void give_back(std::size_t size, std::max_align_t* ptr);
 public:
 	~Accountant();
 	friend void* operator new(std::size_t m) noexcept(false);
 	friend void* operator new[](std::size_t m) noexcept(false);
-	friend void operator delete(void* ptr) noexcept;
-	friend void operator delete[](void* ptr) noexcept;	
+	friend void operator delete(void* ptr, std::size_t n) noexcept;
+	friend void operator delete[](void* ptr, std::size_t n) noexcept;
 	Accountant(Accountant const&) = delete;
 	Accountant& operator=(Accountant const&) = delete;
 	static auto& get() 
